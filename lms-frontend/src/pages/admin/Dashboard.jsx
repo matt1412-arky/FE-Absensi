@@ -976,10 +976,15 @@ function StudentsPage() {
 
   const save = async (e) => {
     e.preventDefault();
+    const classId = parseInt(form.class_id) || parseInt(selClass);
+    if (!classId) {
+      alert("Pilih kelas terlebih dahulu");
+      return;
+    }
     await studentsAPI.create({
-      ...form,
-      class_id: parseInt(form.class_id || selClass),
-      points: parseInt(form.points),
+      name: form.name,
+      class_id: classId,
+      points: parseInt(form.points) || 0,
     });
     setModal(false);
     load();
