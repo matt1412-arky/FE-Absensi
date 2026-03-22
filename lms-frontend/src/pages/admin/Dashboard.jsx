@@ -253,6 +253,7 @@ function SchedulePage() {
     subject: "",
     day: 1,
     time: "08:00",
+    end_time: "09:00",
   });
 
   const load = () => schedulesAPI.list().then((r) => setSchedules(r.data));
@@ -344,6 +345,7 @@ function SchedulePage() {
                       }}
                     >
                       {s.time}
+                      {s.end_time ? ` – ${s.end_time}` : ""}
                     </div>
                     <div style={{ fontSize: 13, marginTop: 2 }}>
                       {s.subject}
@@ -456,7 +458,7 @@ function SchedulePage() {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Jam</label>
+                    <label className="form-label">Jam Mulai</label>
                     <input
                       className="form-input"
                       type="time"
@@ -467,6 +469,21 @@ function SchedulePage() {
                       required
                     />
                   </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Jam Selesai</label>
+                    <input
+                      className="form-input"
+                      type="time"
+                      value={form.end_time}
+                      onChange={(e) =>
+                        setForm({ ...form, end_time: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="form-group" />
                 </div>
               </div>
               <div className="modal-footer">
