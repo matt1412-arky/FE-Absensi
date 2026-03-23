@@ -63,8 +63,11 @@ const chartOpts = {
   maintainAspectRatio: false,
   plugins: { legend: { display: false } },
   scales: {
-    x: { grid: { display: false } },
-    y: { grid: { color: "rgba(0,0,0,.05)" } },
+    x: {
+      grid: { display: false },
+      ticks: { maxRotation: 45, font: { size: 10 } },
+    },
+    y: { grid: { color: "rgba(0,0,0,.05)" }, min: 0, max: 100 },
   },
 };
 
@@ -93,13 +96,16 @@ function Overview() {
   }, [selClass]);
 
   const att = dash?.today_attendance || {};
-  const chartData = stats
+  const sortedStudents = stats?.students
+    ? [...stats.students].sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+  const chartData = sortedStudents.length
     ? {
-        labels: stats.students?.map((s) => s.name.split(" ")[0]) || [],
+        labels: sortedStudents.map((s) => s.name.split(" ")[0]),
         datasets: [
           {
             label: "Nilai Rata-rata",
-            data: stats.students?.map((s) => s.avg_score) || [],
+            data: sortedStudents.map((s) => s.avg_score),
             backgroundColor: "rgba(13,27,62,.75)",
             borderRadius: 8,
           },
@@ -226,15 +232,25 @@ function Overview() {
             </select>
           </div>
           <div className="card-body">
-            <div className="chart-wrap">
-              {chartData ? (
-                <Bar data={chartData} options={chartOpts} />
-              ) : (
-                <div className="empty-state">
-                  <div className="empty-icon">📊</div>
-                  <p>Tidak ada data</p>
-                </div>
-              )}
+            <div style={{ overflowX: "auto" }}>
+              <div
+                style={{
+                  minWidth:
+                    sortedStudents.length > 15
+                      ? sortedStudents.length * 40
+                      : "100%",
+                  height: 220,
+                }}
+              >
+                {chartData ? (
+                  <Bar data={chartData} options={chartOpts} />
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-icon">📊</div>
+                    <p>Tidak ada data</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
