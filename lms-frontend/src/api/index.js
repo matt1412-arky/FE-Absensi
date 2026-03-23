@@ -45,7 +45,7 @@ export const classesAPI = {
 }
 
 export const studentsAPI = {
-  list: (classId) => api.get('/students', { params: classId ? { class_id: classId } : {} }),
+  list: (classId, orderBy='name', sort='asc') => api.get('/students', { params: { ...(classId ? { class_id: classId } : {}), order_by: orderBy, sort } }),
   listDeleted: () => api.get('/students/deleted'),
   create: (data) => api.post('/students', data),
   update: (id, data) => api.put(`/students/${id}`, data),
@@ -65,6 +65,8 @@ export const gradesAPI = {
   delete: (id) => api.delete(`/grades/${id}`),
   restore: (id) => api.put(`/grades/${id}/restore`),
 }
+
+export const attendanceAPI_sort = (params) => api.get('/attendance', { params })
 
 export const schedulesAPI = {
   list: () => api.get('/schedules'),

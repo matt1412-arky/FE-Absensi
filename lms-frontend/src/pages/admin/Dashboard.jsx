@@ -679,12 +679,14 @@ function GradesPage() {
     date: new Date().toISOString().slice(0, 10),
     notes: "",
   });
+  const [sortCol, setSortCol] = useState("date");
+  const [sortDir, setSortDir] = useState("desc");
 
-  const load = () => {
+  const load = (col = sortCol, dir = sortDir) => {
     if (selClass) {
       studentsAPI.list(selClass).then((r) => setStudents(r.data || []));
       gradesAPI
-        .list({ class_id: selClass })
+        .list({ class_id: selClass, order_by: col, sort: dir })
         .then((r) => setGrades(r.data || []));
     }
   };
@@ -697,6 +699,25 @@ function GradesPage() {
   useEffect(() => {
     load();
   }, [selClass]);
+
+  const handleSort = (col) => {
+    const newDir = sortCol === col && sortDir === "asc" ? "desc" : "asc";
+    setSortCol(col);
+    setSortDir(newDir);
+    load(col, newDir);
+  };
+
+  const SortIcon = ({ col }) => (
+    <span
+      style={{
+        marginLeft: 4,
+        opacity: sortCol === col ? 1 : 0.3,
+        fontSize: 11,
+      }}
+    >
+      {sortCol === col ? (sortDir === "asc" ? "▲" : "▼") : "▲"}
+    </span>
+  );
 
   const save = async (e) => {
     e.preventDefault();
@@ -769,11 +790,31 @@ function GradesPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Tanggal</th>
+                  <th
+                    onClick={() => handleSort("date")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Tanggal <SortIcon col="date" />
+                  </th>
                   <th>Siswa</th>
-                  <th>Mata Pelajaran</th>
-                  <th>Tipe</th>
-                  <th>Nilai</th>
+                  <th
+                    onClick={() => handleSort("subject")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Mata Pelajaran <SortIcon col="subject" />
+                  </th>
+                  <th
+                    onClick={() => handleSort("type")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Tipe <SortIcon col="type" />
+                  </th>
+                  <th
+                    onClick={() => handleSort("score")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Nilai <SortIcon col="score" />
+                  </th>
                   <th>Catatan</th>
                   <th></th>
                 </tr>
@@ -968,10 +1009,14 @@ function StudentsPage() {
   const [showDeleted, setShowDeleted] = useState(false);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ name: "", class_id: "", points: 0 });
+  const [sortCol, setSortCol] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
 
-  const load = () => {
+  const load = (col = sortCol, dir = sortDir) => {
     if (selClass)
-      studentsAPI.list(selClass).then((r) => setStudents(r.data || []));
+      studentsAPI
+        .list(selClass, col, dir)
+        .then((r) => setStudents(r.data || []));
     studentsAPI.listDeleted().then((r) => setDeleted(r.data || []));
   };
   useEffect(() => {
@@ -983,6 +1028,25 @@ function StudentsPage() {
   useEffect(() => {
     load();
   }, [selClass]);
+
+  const handleSort = (col) => {
+    const newDir = sortCol === col && sortDir === "asc" ? "desc" : "asc";
+    setSortCol(col);
+    setSortDir(newDir);
+    load(col, newDir);
+  };
+
+  const SortIcon = ({ col }) => (
+    <span
+      style={{
+        marginLeft: 4,
+        opacity: sortCol === col ? 1 : 0.3,
+        fontSize: 11,
+      }}
+    >
+      {sortCol === col ? (sortDir === "asc" ? "▲" : "▼") : "▲"}
+    </span>
+  );
 
   const save = async (e) => {
     e.preventDefault();
@@ -1116,9 +1180,19 @@ function StudentsPage() {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Nama</th>
+                  <th
+                    onClick={() => handleSort("name")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Nama <SortIcon col="name" />
+                  </th>
                   <th>Kelas</th>
-                  <th>Poin</th>
+                  <th
+                    onClick={() => handleSort("points")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Poin <SortIcon col="points" />
+                  </th>
                   <th>Aksi</th>
                 </tr>
               </thead>
