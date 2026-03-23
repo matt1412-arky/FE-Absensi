@@ -134,7 +134,10 @@ function Overview() {
       </div>
 
       {/* Stat cards */}
-      <div className="stat-grid">
+      <div
+        className="stat-grid"
+        style={{ gridTemplateColumns: "repeat(4,1fr)" }}
+      >
         <div className="stat-card">
           <div className="stat-icon green">✅</div>
           <div className="stat-info">
@@ -165,7 +168,14 @@ function Overview() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 20,
+          marginBottom: 20,
+        }}
+      >
         {/* Jadwal hari ini */}
         <div className="card">
           <div className="card-header">
@@ -214,7 +224,7 @@ function Overview() {
           </div>
         </div>
 
-        {/* Chart nilai per kelas */}
+        {/* Pilih kelas untuk grafik */}
         <div className="card">
           <div className="card-header">
             <span className="card-title">📊 Grafik Nilai</span>
@@ -231,31 +241,43 @@ function Overview() {
               ))}
             </select>
           </div>
-          <div className="card-body" style={{ padding: "12px 16px" }}>
-            <div style={{ overflowX: "auto", overflowY: "hidden" }}>
-              <div
-                style={{
-                  width:
-                    sortedStudents.length > 12
-                      ? `${sortedStudents.length * 45}px`
-                      : "100%",
-                  minWidth: "100%",
-                  height: 200,
-                }}
-              >
-                {chartData ? (
-                  <Bar data={chartData} options={chartOpts} />
-                ) : (
-                  <div className="empty-state">
-                    <div className="empty-icon">📊</div>
-                    <p>Tidak ada data</p>
-                  </div>
-                )}
-              </div>
-            </div>
+          <div
+            className="card-body"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--gray-400)",
+              fontSize: 13,
+            }}
+          >
+            {sortedStudents.length > 0 ? (
+              <span>
+                📋 {sortedStudents.length} siswa — lihat grafik di bawah
+              </span>
+            ) : (
+              <span>Pilih kelas untuk lihat grafik</span>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Chart full width */}
+      {chartData && (
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">
+              📊 Grafik Rata-rata Nilai —{" "}
+              {classes.find((c) => String(c.id) === String(selClass))?.name}
+            </span>
+          </div>
+          <div className="card-body" style={{ padding: "12px 16px" }}>
+            <div style={{ height: 240 }}>
+              <Bar data={chartData} options={chartOpts} />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
