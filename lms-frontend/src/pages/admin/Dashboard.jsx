@@ -1170,6 +1170,13 @@ function StudentsPage() {
   const [pointHistory, setPointHistory] = useState([]);
   const [pointForm, setPointForm] = useState({ delta: "", reason: "" });
   const [pointMsg, setPointMsg] = useState("");
+  const [search, setSearch] = useState("");
+
+  const filteredStudents = search.trim()
+    ? students.filter((s) =>
+        s.name.toLowerCase().includes(search.toLowerCase()),
+      )
+    : students;
 
   const load = (col = sortCol, dir = sortDir) => {
     if (selClass)
@@ -1366,24 +1373,40 @@ function StudentsPage() {
       <div className="card">
         <div className="card-header">
           <span className="card-title">Siswa Kelas</span>
-          <select
-            className="form-input form-select"
-            style={{ width: 140 }}
-            value={selClass}
-            onChange={(e) => setSelClass(e.target.value)}
-          >
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              className="form-input"
+              style={{ width: 180, padding: "6px 12px", fontSize: 13 }}
+              placeholder="🔍 Cari nama siswa..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <select
+              className="form-input form-select"
+              style={{ width: 140 }}
+              value={selClass}
+              onChange={(e) => {
+                setSelClass(e.target.value);
+                setSearch("");
+              }}
+            >
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="card-body table-wrap">
-          {students.length === 0 ? (
+          {filteredStudents.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">👨‍🎓</div>
-              <p>Belum ada siswa di kelas ini</p>
+              <p>
+                {search
+                  ? `Tidak ada siswa dengan nama "${search}"`
+                  : "Belum ada siswa di kelas ini"}
+              </p>
             </div>
           ) : (
             <table>
@@ -1407,10 +1430,31 @@ function StudentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {students.map((s, i) => (
+                {filteredStudents.map((s, i) => (
                   <tr key={s.id}>
                     <td style={{ color: "var(--gray-400)" }}>{i + 1}</td>
-                    <td style={{ fontWeight: 600 }}>{s.name}</td>
+                    <td style={{ fontWeight: 600 }}>
+                      {search
+                        ? s.name
+                            .split(new RegExp(`(${search})`, "gi"))
+                            .map((part, j) =>
+                              part.toLowerCase() === search.toLowerCase() ? (
+                                <mark
+                                  key={j}
+                                  style={{
+                                    background: "var(--gold-pale)",
+                                    borderRadius: 3,
+                                    padding: "0 2px",
+                                  }}
+                                >
+                                  {part}
+                                </mark>
+                              ) : (
+                                part
+                              ),
+                            )
+                        : s.name}
+                    </td>
                     <td>{s.class?.name || "–"}</td>
                     <td>
                       <span
