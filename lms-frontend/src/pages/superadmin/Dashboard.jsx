@@ -123,14 +123,36 @@ function UsersPage() {
   const [newPass, setNewPass] = useState("");
   const [passMsg, setPassMsg] = useState("");
 
-  const load = () => {
-    usersAPI.list().then((r) => setUsers(r.data || []));
+  const [sortCol, setSortCol] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
+
+  const load = (col = sortCol, dir = sortDir) => {
+    usersAPI.list(col, dir).then((r) => setUsers(r.data || []));
     usersAPI.listDeleted().then((r) => setDeleted(r.data || []));
     classesAPI.list().then((r) => setClasses(r.data || []));
   };
   useEffect(() => {
     load();
   }, []);
+
+  const handleSort = (col) => {
+    const newDir = sortCol === col && sortDir === "asc" ? "desc" : "asc";
+    setSortCol(col);
+    setSortDir(newDir);
+    load(col, newDir);
+  };
+
+  const SortIcon = ({ col }) => (
+    <span
+      style={{
+        marginLeft: 4,
+        opacity: sortCol === col ? 1 : 0.3,
+        fontSize: 11,
+      }}
+    >
+      {sortCol === col ? (sortDir === "asc" ? "▲" : "▼") : "▲"}
+    </span>
+  );
 
   const openAdd = () => {
     setEditing(null);
@@ -275,9 +297,24 @@ function UsersPage() {
           <table>
             <thead>
               <tr>
-                <th>Nama</th>
-                <th>Username</th>
-                <th>Role</th>
+                <th
+                  onClick={() => handleSort("name")}
+                  style={{ cursor: "pointer" }}
+                >
+                  Nama <SortIcon col="name" />
+                </th>
+                <th
+                  onClick={() => handleSort("username")}
+                  style={{ cursor: "pointer" }}
+                >
+                  Username <SortIcon col="username" />
+                </th>
+                <th
+                  onClick={() => handleSort("role")}
+                  style={{ cursor: "pointer" }}
+                >
+                  Role <SortIcon col="role" />
+                </th>
                 <th>Kelas</th>
                 <th>Aksi</th>
               </tr>

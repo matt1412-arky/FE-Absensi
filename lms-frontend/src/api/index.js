@@ -27,7 +27,7 @@ export const authAPI = {
 }
 
 export const usersAPI = {
-  list: () => api.get('/users'),
+  list: (orderBy='name', sort='asc') => api.get('/users', { params: { order_by: orderBy, sort } }),
   listDeleted: () => api.get('/users/deleted'),
   create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
