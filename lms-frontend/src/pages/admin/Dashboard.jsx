@@ -165,7 +165,7 @@ function Overview() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20 }}>
         {/* Jadwal hari ini */}
         <div className="card">
           <div className="card-header">
@@ -231,15 +231,16 @@ function Overview() {
               ))}
             </select>
           </div>
-          <div className="card-body">
-            <div style={{ overflowX: "auto" }}>
+          <div className="card-body" style={{ padding: "12px 16px" }}>
+            <div style={{ overflowX: "auto", overflowY: "hidden" }}>
               <div
                 style={{
-                  minWidth:
-                    sortedStudents.length > 15
-                      ? sortedStudents.length * 40
+                  width:
+                    sortedStudents.length > 12
+                      ? `${sortedStudents.length * 45}px`
                       : "100%",
-                  height: 220,
+                  minWidth: "100%",
+                  height: 200,
                 }}
               >
                 {chartData ? (
