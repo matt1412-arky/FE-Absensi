@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
@@ -16,6 +16,12 @@ function Sidebar({ navItems, basePath }) {
   const [passError, setPassError] = useState("");
   const [passSuccess, setPassSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -65,7 +71,22 @@ function Sidebar({ navItems, basePath }) {
 
   return (
     <>
-      <aside className="sidebar">
+      {/* Hamburger button - only visible on mobile */}
+      <button
+        className="hamburger"
+        style={{ display: "none" }}
+        onClick={() => setSidebarOpen(true)}
+      >
+        ☰
+      </button>
+
+      {/* Overlay - only on mobile when sidebar open */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sidebar-brand">
           <img
             src="/logo.png"
