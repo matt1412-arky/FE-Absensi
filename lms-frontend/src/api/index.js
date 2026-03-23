@@ -28,9 +28,12 @@ export const authAPI = {
 
 export const usersAPI = {
   list: () => api.get('/users'),
+  listDeleted: () => api.get('/users/deleted'),
   create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
+  restore: (id) => api.put(`/users/${id}/restore`),
+  changePassword: (id, password) => api.put(`/users/${id}/password`, { new_password: password }),
 }
 
 export const classesAPI = {
@@ -43,9 +46,11 @@ export const classesAPI = {
 
 export const studentsAPI = {
   list: (classId) => api.get('/students', { params: classId ? { class_id: classId } : {} }),
+  listDeleted: () => api.get('/students/deleted'),
   create: (data) => api.post('/students', data),
   update: (id, data) => api.put(`/students/${id}`, data),
   delete: (id) => api.delete(`/students/${id}`),
+  restore: (id) => api.put(`/students/${id}/restore`),
 }
 
 export const attendanceAPI = {
@@ -58,6 +63,7 @@ export const gradesAPI = {
   create: (data) => api.post('/grades', data),
   update: (id, data) => api.put(`/grades/${id}`, data),
   delete: (id) => api.delete(`/grades/${id}`),
+  restore: (id) => api.put(`/grades/${id}/restore`),
 }
 
 export const schedulesAPI = {

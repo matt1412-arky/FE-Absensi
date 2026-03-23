@@ -106,6 +106,8 @@ function Overview() {
 // ── Users Management ──────────────────────────────────────────────────────────
 function UsersPage() {
   const [users, setUsers] = useState([]);
+  const [deleted, setDeleted] = useState([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [classes, setClasses] = useState([]);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -123,6 +125,7 @@ function UsersPage() {
 
   const load = () => {
     usersAPI.list().then((r) => setUsers(r.data || []));
+    usersAPI.listDeleted().then((r) => setDeleted(r.data || []));
     classesAPI.list().then((r) => setClasses(r.data || []));
   };
   useEffect(() => {
@@ -188,8 +191,13 @@ function UsersPage() {
   };
 
   const remove = async (id) => {
-    if (!confirm("Hapus user ini?")) return;
+    if (!confirm("Hapus user ini? Data bisa dipulihkan nanti.")) return;
     await usersAPI.delete(id);
+    load();
+  };
+
+  const restore = async (id) => {
+    await usersAPI.restore(id);
     load();
   };
 
@@ -199,12 +207,69 @@ function UsersPage() {
         <div className="page-title">Kelola User</div>
         <div className="page-subtitle">Tambah, edit, dan hapus akun user</div>
       </div>
+
+      {/* Tabel user terhapus */}
+      {showDeleted && deleted.length > 0 && (
+        <div
+          className="card"
+          style={{ marginBottom: 16, border: "2px solid var(--red)" }}
+        >
+          <div className="card-header">
+            <span className="card-title" style={{ color: "var(--red)" }}>
+              🗑 User Terhapus
+            </span>
+          </div>
+          <div className="card-body table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deleted.map((u) => (
+                  <tr key={u.id} style={{ opacity: 0.7 }}>
+                    <td style={{ textDecoration: "line-through" }}>{u.name}</td>
+                    <td style={{ color: "var(--gray-400)" }}>{u.username}</td>
+                    <td>
+                      <span className={`badge badge-${u.role}`}>{u.role}</span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: "var(--green)" }}
+                        onClick={() => restore(u.id)}
+                      >
+                        ♻️ Pulihkan
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <div className="card-header">
           <span className="card-title">Semua User</span>
-          <button className="btn btn-primary btn-sm" onClick={openAdd}>
-            + Tambah User
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            {deleted.length > 0 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setShowDeleted(!showDeleted)}
+              >
+                {showDeleted ? "✅ Aktif" : `🗑 Terhapus (${deleted.length})`}
+              </button>
+            )}
+            <button className="btn btn-primary btn-sm" onClick={openAdd}>
+              + Tambah User
+            </button>
+          </div>
         </div>
         <div className="card-body table-wrap">
           <table>

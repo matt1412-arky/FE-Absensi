@@ -816,7 +816,14 @@ function GradesPage() {
                       <td>
                         <button
                           className="btn btn-danger btn-sm"
-                          onClick={() => gradesAPI.delete(g.id).then(load)}
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Hapus nilai? Data bisa dipulihkan nanti.",
+                              )
+                            )
+                              gradesAPI.delete(g.id).then(load);
+                          }}
                         >
                           🗑
                         </button>
@@ -957,12 +964,15 @@ function StudentsPage() {
   const [classes, setClasses] = useState([]);
   const [selClass, setSelClass] = useState("");
   const [students, setStudents] = useState([]);
+  const [deleted, setDeleted] = useState([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ name: "", class_id: "", points: 0 });
 
   const load = () => {
     if (selClass)
       studentsAPI.list(selClass).then((r) => setStudents(r.data || []));
+    studentsAPI.listDeleted().then((r) => setDeleted(r.data || []));
   };
   useEffect(() => {
     classesAPI.list().then((r) => {
@@ -990,6 +1000,17 @@ function StudentsPage() {
     load();
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm("Hapus siswa? Data bisa dipulihkan nanti.")) return;
+    await studentsAPI.delete(id);
+    load();
+  };
+
+  const handleRestore = async (id) => {
+    await studentsAPI.restore(id);
+    load();
+  };
+
   return (
     <>
       <div className="page-header">
@@ -1004,17 +1025,70 @@ function StudentsPage() {
             <div className="page-title">👨‍🎓 Data Siswa</div>
             <div className="page-subtitle">Kelola data siswa per kelas</div>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              setForm({ name: "", class_id: selClass, points: 0 });
-              setModal(true);
-            }}
-          >
-            + Tambah Siswa
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            {deleted.length > 0 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setShowDeleted(!showDeleted)}
+              >
+                {showDeleted ? "✅ Aktif" : `🗑 Terhapus (${deleted.length})`}
+              </button>
+            )}
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setForm({ name: "", class_id: selClass, points: 0 });
+                setModal(true);
+              }}
+            >
+              + Tambah Siswa
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Tabel data terhapus */}
+      {showDeleted && (
+        <div
+          className="card"
+          style={{ marginBottom: 16, border: "2px solid var(--red)" }}
+        >
+          <div className="card-header">
+            <span className="card-title" style={{ color: "var(--red)" }}>
+              🗑 Siswa Terhapus
+            </span>
+          </div>
+          <div className="card-body table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Kelas</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deleted.map((s) => (
+                  <tr key={s.id} style={{ opacity: 0.7 }}>
+                    <td style={{ textDecoration: "line-through" }}>{s.name}</td>
+                    <td>{s.class?.name || "–"}</td>
+                    <td>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: "var(--green)" }}
+                        onClick={() => handleRestore(s.id)}
+                      >
+                        ♻️ Pulihkan
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <div className="card-header">
           <span className="card-title">Siswa Kelas</span>
@@ -1070,7 +1144,7 @@ function StudentsPage() {
                     <td>
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => studentsAPI.delete(s.id).then(load)}
+                        onClick={() => handleDelete(s.id)}
                       >
                         🗑
                       </button>
