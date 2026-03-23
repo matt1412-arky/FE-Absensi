@@ -248,6 +248,7 @@ function SchedulePage() {
   const [schedules, setSchedules] = useState([]);
   const [classes, setClasses] = useState([]);
   const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
     class_id: "",
     subject: "",
@@ -262,14 +263,39 @@ function SchedulePage() {
     classesAPI.list().then((r) => setClasses(r.data || []));
   }, []);
 
+  const openAdd = () => {
+    setEditing(null);
+    setForm({
+      class_id: "",
+      subject: "",
+      day: 1,
+      time: "08:00",
+      end_time: "09:00",
+    });
+    setModal(true);
+  };
+  const openEdit = (s) => {
+    setEditing(s);
+    setForm({
+      class_id: String(s.class_id),
+      subject: s.subject,
+      day: s.day,
+      time: s.time,
+      end_time: s.end_time || "",
+    });
+    setModal(true);
+  };
+
   const save = async (e) => {
     e.preventDefault();
-    await schedulesAPI.create({
+    const payload = {
       ...form,
       class_id: parseInt(form.class_id),
       day: parseInt(form.day),
       admin_id: user.id,
-    });
+    };
+    if (editing) await schedulesAPI.update(editing.id, payload);
+    else await schedulesAPI.create(payload);
     setModal(false);
     load();
   };
@@ -296,7 +322,7 @@ function SchedulePage() {
             <div className="page-title">📅 Jadwal Mengajar</div>
             <div className="page-subtitle">Atur jadwal mengajar per hari</div>
           </div>
-          <button className="btn btn-primary" onClick={() => setModal(true)}>
+          <button className="btn btn-primary" onClick={openAdd}>
             + Tambah Jadwal
           </button>
         </div>
@@ -353,27 +379,52 @@ function SchedulePage() {
                     <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>
                       🏫 {s.class?.name}
                     </div>
-                    <button
-                      onClick={() => schedulesAPI.delete(s.id).then(load)}
+                    <div
                       style={{
                         position: "absolute",
                         top: 6,
                         right: 6,
-                        background: "rgba(255,255,255,.15)",
-                        border: "none",
-                        color: "white",
-                        cursor: "pointer",
-                        borderRadius: 4,
-                        width: 20,
-                        height: 20,
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 10,
+                        gap: 4,
                       }}
                     >
-                      ✕
-                    </button>
+                      <button
+                        onClick={() => openEdit(s)}
+                        style={{
+                          background: "rgba(255,255,255,.15)",
+                          border: "none",
+                          color: "white",
+                          cursor: "pointer",
+                          borderRadius: 4,
+                          width: 20,
+                          height: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 10,
+                        }}
+                      >
+                        ✏
+                      </button>
+                      <button
+                        onClick={() => schedulesAPI.delete(s.id).then(load)}
+                        style={{
+                          background: "rgba(255,255,255,.15)",
+                          border: "none",
+                          color: "white",
+                          cursor: "pointer",
+                          borderRadius: 4,
+                          width: 20,
+                          height: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 10,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {g.slots.length === 0 && (
@@ -401,7 +452,9 @@ function SchedulePage() {
         >
           <div className="modal">
             <div className="modal-header">
-              <span className="modal-title">Tambah Jadwal</span>
+              <span className="modal-title">
+                {editing ? "✏️ Edit Jadwal" : "Tambah Jadwal"}
+              </span>
               <button className="modal-close" onClick={() => setModal(false)}>
                 ✕
               </button>
@@ -671,6 +724,7 @@ function GradesPage() {
   const [students, setStudents] = useState([]);
   const [grades, setGrades] = useState([]);
   const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
     student_id: "",
     subject: "",
@@ -719,14 +773,41 @@ function GradesPage() {
     </span>
   );
 
+  const openAdd = () => {
+    setEditing(null);
+    setForm({
+      student_id: "",
+      subject: "",
+      score: "",
+      type: "tugas",
+      date: new Date().toISOString().slice(0, 10),
+      notes: "",
+    });
+    setModal(true);
+  };
+  const openEdit = (g) => {
+    setEditing(g);
+    setForm({
+      student_id: String(g.student_id),
+      subject: g.subject,
+      score: String(g.score),
+      type: g.type,
+      date: g.date,
+      notes: g.notes || "",
+    });
+    setModal(true);
+  };
+
   const save = async (e) => {
     e.preventDefault();
-    await gradesAPI.create({
+    const payload = {
       ...form,
       student_id: parseInt(form.student_id),
       class_id: parseInt(selClass),
       score: parseFloat(form.score),
-    });
+    };
+    if (editing) await gradesAPI.update(editing.id, payload);
+    else await gradesAPI.create(payload);
     setModal(false);
     load();
   };
@@ -759,7 +840,7 @@ function GradesPage() {
             <div className="page-title">📝 Input Nilai</div>
             <div className="page-subtitle">Rekam nilai siswa</div>
           </div>
-          <button className="btn btn-primary" onClick={() => setModal(true)}>
+          <button className="btn btn-primary" onClick={openAdd}>
             + Tambah Nilai
           </button>
         </div>
@@ -855,19 +936,27 @@ function GradesPage() {
                         {g.notes || "–"}
                       </td>
                       <td>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => {
-                            if (
-                              confirm(
-                                "Hapus nilai? Data bisa dipulihkan nanti.",
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => openEdit(g)}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Hapus nilai? Data bisa dipulihkan nanti.",
+                                )
                               )
-                            )
-                              gradesAPI.delete(g.id).then(load);
-                          }}
-                        >
-                          🗑
-                        </button>
+                                gradesAPI.delete(g.id).then(load);
+                            }}
+                          >
+                            🗑
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -885,7 +974,9 @@ function GradesPage() {
         >
           <div className="modal">
             <div className="modal-header">
-              <span className="modal-title">Tambah Nilai</span>
+              <span className="modal-title">
+                {editing ? "✏️ Edit Nilai" : "Tambah Nilai"}
+              </span>
               <button className="modal-close" onClick={() => setModal(false)}>
                 ✕
               </button>
@@ -1008,9 +1099,15 @@ function StudentsPage() {
   const [deleted, setDeleted] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
   const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: "", class_id: "", points: 0 });
   const [sortCol, setSortCol] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
+  const [pointModal, setPointModal] = useState(false);
+  const [pointTarget, setPointTarget] = useState(null);
+  const [pointHistory, setPointHistory] = useState([]);
+  const [pointForm, setPointForm] = useState({ delta: "", reason: "" });
+  const [pointMsg, setPointMsg] = useState("");
 
   const load = (col = sortCol, dir = sortDir) => {
     if (selClass)
@@ -1048,6 +1145,55 @@ function StudentsPage() {
     </span>
   );
 
+  const openPointModal = async (s) => {
+    setPointTarget(s);
+    setPointForm({ delta: "", reason: "" });
+    setPointMsg("");
+    const r = await studentsAPI.getPointHistory(s.id);
+    setPointHistory(r.data || []);
+    setPointModal(true);
+  };
+
+  const submitPoint = async (e) => {
+    e.preventDefault();
+    setPointMsg("");
+    const delta = parseInt(pointForm.delta);
+    if (isNaN(delta) || delta === 0) {
+      setPointMsg("Delta tidak boleh 0");
+      return;
+    }
+    if (!pointForm.reason.trim()) {
+      setPointMsg("Alasan tidak boleh kosong");
+      return;
+    }
+    try {
+      const r = await studentsAPI.addPoint(
+        pointTarget.id,
+        delta,
+        pointForm.reason,
+      );
+      setPointTarget((prev) => ({ ...prev, points: r.data.points }));
+      setPointForm({ delta: "", reason: "" });
+      setPointMsg(`✅ Poin berhasil ${delta > 0 ? "ditambah" : "dikurangi"}!`);
+      const h = await studentsAPI.getPointHistory(pointTarget.id);
+      setPointHistory(h.data || []);
+      load();
+    } catch (err) {
+      setPointMsg("❌ " + (err.response?.data?.error || "Gagal update poin"));
+    }
+  };
+
+  const openAdd = () => {
+    setEditing(null);
+    setForm({ name: "", class_id: selClass, points: 0 });
+    setModal(true);
+  };
+  const openEdit = (s) => {
+    setEditing(s);
+    setForm({ name: s.name, class_id: String(s.class_id), points: s.points });
+    setModal(true);
+  };
+
   const save = async (e) => {
     e.preventDefault();
     const classId = parseInt(form.class_id) || parseInt(selClass);
@@ -1055,11 +1201,19 @@ function StudentsPage() {
       alert("Pilih kelas terlebih dahulu");
       return;
     }
-    await studentsAPI.create({
-      name: form.name,
-      class_id: classId,
-      points: parseInt(form.points) || 0,
-    });
+    if (editing) {
+      await studentsAPI.update(editing.id, {
+        name: form.name,
+        class_id: classId,
+        points: parseInt(form.points) || 0,
+      });
+    } else {
+      await studentsAPI.create({
+        name: form.name,
+        class_id: classId,
+        points: parseInt(form.points) || 0,
+      });
+    }
     setModal(false);
     load();
   };
@@ -1098,13 +1252,7 @@ function StudentsPage() {
                 {showDeleted ? "✅ Aktif" : `🗑 Terhapus (${deleted.length})`}
               </button>
             )}
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                setForm({ name: "", class_id: selClass, points: 0 });
-                setModal(true);
-              }}
-            >
+            <button className="btn btn-primary" onClick={openAdd}>
               + Tambah Siswa
             </button>
           </div>
@@ -1204,24 +1352,42 @@ function StudentsPage() {
                     <td>{s.class?.name || "–"}</td>
                     <td>
                       <span
+                        onClick={() => openPointModal(s)}
                         style={{
                           background: "var(--gold-pale)",
                           color: "var(--navy)",
                           padding: "2px 12px",
                           borderRadius: 99,
                           fontWeight: 700,
+                          cursor: "pointer",
                         }}
+                        title="Kelola Poin"
                       >
                         ⭐ {s.points}
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(s.id)}
-                      >
-                        🗑
-                      </button>
+                      <div style={{ display: "flex", gap: 4 }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => openEdit(s)}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => openPointModal(s)}
+                          title="Kelola Poin"
+                        >
+                          🏅
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(s.id)}
+                        >
+                          🗑
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1238,7 +1404,9 @@ function StudentsPage() {
         >
           <div className="modal">
             <div className="modal-header">
-              <span className="modal-title">Tambah Siswa</span>
+              <span className="modal-title">
+                {editing ? "✏️ Edit Siswa" : "Tambah Siswa"}
+              </span>
               <button className="modal-close" onClick={() => setModal(false)}>
                 ✕
               </button>
@@ -1297,6 +1465,196 @@ function StudentsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Kelola Poin */}
+      {pointModal && pointTarget && (
+        <div
+          className="modal-overlay"
+          onClick={(e) => e.target === e.currentTarget && setPointModal(false)}
+        >
+          <div className="modal" style={{ maxWidth: 540 }}>
+            <div className="modal-header">
+              <span className="modal-title">🏅 Poin — {pointTarget.name}</span>
+              <button
+                className="modal-close"
+                onClick={() => setPointModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
+              {/* Current Points */}
+              <div
+                style={{
+                  textAlign: "center",
+                  marginBottom: 16,
+                  padding: "12px",
+                  background: "var(--gold-pale)",
+                  borderRadius: 10,
+                }}
+              >
+                <div style={{ fontSize: 13, color: "var(--gray-400)" }}>
+                  Total Poin Saat Ini
+                </div>
+                <div
+                  style={{
+                    fontSize: 32,
+                    fontWeight: 800,
+                    color: "var(--navy)",
+                  }}
+                >
+                  ⭐ {pointTarget.points}
+                </div>
+              </div>
+
+              {/* Form tambah/kurang poin */}
+              <form onSubmit={submitPoint}>
+                {pointMsg && (
+                  <div
+                    style={{
+                      background: pointMsg.startsWith("✅")
+                        ? "#dcfce7"
+                        : "#fee2e2",
+                      color: pointMsg.startsWith("✅") ? "#15803d" : "#dc2626",
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      marginBottom: 12,
+                    }}
+                  >
+                    {pointMsg}
+                  </div>
+                )}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Delta Poin</label>
+                    <input
+                      className="form-input"
+                      type="number"
+                      value={pointForm.delta}
+                      onChange={(e) =>
+                        setPointForm({ ...pointForm, delta: e.target.value })
+                      }
+                      placeholder="Contoh: +10 atau -5"
+                      required
+                    />
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "var(--gray-400)",
+                        marginTop: 4,
+                      }}
+                    >
+                      Positif = tambah, negatif = kurang
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Alasan</label>
+                    <input
+                      className="form-input"
+                      value={pointForm.reason}
+                      onChange={(e) =>
+                        setPointForm({ ...pointForm, reason: e.target.value })
+                      }
+                      placeholder="Contoh: Juara lomba, Terlambat..."
+                      required
+                    />
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    justifyContent: "flex-end",
+                    marginBottom: 16,
+                  }}
+                >
+                  <button type="submit" className="btn btn-primary btn-sm">
+                    Simpan Poin
+                  </button>
+                </div>
+              </form>
+
+              {/* History */}
+              <div
+                style={{ borderTop: "1px solid var(--border)", paddingTop: 12 }}
+              >
+                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
+                  📋 Riwayat Perubahan Poin
+                </div>
+                {pointHistory.length === 0 ? (
+                  <div
+                    style={{
+                      color: "var(--gray-400)",
+                      fontSize: 13,
+                      textAlign: "center",
+                      padding: "12px 0",
+                    }}
+                  >
+                    Belum ada riwayat
+                  </div>
+                ) : (
+                  <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                    {pointHistory.map((h) => (
+                      <div
+                        key={h.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "8px 0",
+                          borderBottom: "1px solid var(--border)",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600 }}>
+                            {h.reason}
+                          </div>
+                          <div
+                            style={{ fontSize: 11, color: "var(--gray-400)" }}
+                          >
+                            {new Date(h.created_at).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: 15,
+                            color: h.delta > 0 ? "#15803d" : "#dc2626",
+                            minWidth: 50,
+                            textAlign: "right",
+                          }}
+                        >
+                          {h.delta > 0 ? "+" : ""}
+                          {h.delta}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setPointModal(false)}
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -51,6 +51,8 @@ export const studentsAPI = {
   update: (id, data) => api.put(`/students/${id}`, data),
   delete: (id) => api.delete(`/students/${id}`),
   restore: (id) => api.put(`/students/${id}/restore`),
+  getPointHistory: (id) => api.get(`/students/${id}/points`),
+  addPoint: (id, delta, reason) => api.post(`/students/${id}/points`, { delta, reason }),
 }
 
 export const attendanceAPI = {
@@ -71,6 +73,7 @@ export const attendanceAPI_sort = (params) => api.get('/attendance', { params })
 export const schedulesAPI = {
   list: () => api.get('/schedules'),
   create: (data) => api.post('/schedules', data),
+  update: (id, data) => api.put(`/schedules/${id}`, data),
   delete: (id) => api.delete(`/schedules/${id}`),
 }
 
