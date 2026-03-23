@@ -116,6 +116,10 @@ function UsersPage() {
     role: "student",
     class_id: "",
   });
+  const [passModal, setPassModal] = useState(false);
+  const [passTarget, setPassTarget] = useState(null);
+  const [newPass, setNewPass] = useState("");
+  const [passMsg, setPassMsg] = useState("");
 
   const load = () => {
     usersAPI.list().then((r) => setUsers(r.data || []));
@@ -148,6 +152,13 @@ function UsersPage() {
     setModal(true);
   };
 
+  const openChangePass = (u) => {
+    setPassTarget(u);
+    setNewPass("");
+    setPassMsg("");
+    setPassModal(true);
+  };
+
   const save = async (e) => {
     e.preventDefault();
     const payload = {
@@ -159,6 +170,21 @@ function UsersPage() {
     else await usersAPI.create(payload);
     setModal(false);
     load();
+  };
+
+  const savePass = async (e) => {
+    e.preventDefault();
+    if (newPass.length < 6) {
+      setPassMsg("Password minimal 6 karakter");
+      return;
+    }
+    try {
+      await usersAPI.update(passTarget.id, { password: newPass });
+      setPassMsg("✅ Password berhasil diubah!");
+      setTimeout(() => setPassModal(false), 1500);
+    } catch {
+      setPassMsg("❌ Gagal mengubah password");
+    }
   };
 
   const remove = async (id) => {
@@ -211,6 +237,12 @@ function UsersPage() {
                         onClick={() => openEdit(u)}
                       >
                         ✏️ Edit
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => openChangePass(u)}
+                      >
+                        🔑
                       </button>
                       <button
                         className="btn btn-danger btn-sm"
@@ -320,6 +352,72 @@ function UsersPage() {
                   type="button"
                   className="btn btn-ghost"
                   onClick={() => setModal(false)}
+                >
+                  Batal
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {passModal && (
+        <div
+          className="modal-overlay"
+          onClick={(e) => e.target === e.currentTarget && setPassModal(false)}
+        >
+          <div className="modal">
+            <div className="modal-header">
+              <span className="modal-title">
+                🔑 Ganti Password — {passTarget?.name}
+              </span>
+              <button
+                className="modal-close"
+                onClick={() => setPassModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={savePass}>
+              <div className="modal-body">
+                {passMsg && (
+                  <div
+                    style={{
+                      background: passMsg.startsWith("✅")
+                        ? "#dcfce7"
+                        : "#fee2e2",
+                      color: passMsg.startsWith("✅") ? "#15803d" : "#dc2626",
+                      padding: "10px 14px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      marginBottom: 14,
+                    }}
+                  >
+                    {passMsg}
+                  </div>
+                )}
+                <div className="form-group">
+                  <label className="form-label">
+                    Password Baru untuk {passTarget?.name}
+                  </label>
+                  <input
+                    className="form-input"
+                    type="password"
+                    value={newPass}
+                    onChange={(e) => setNewPass(e.target.value)}
+                    required
+                    placeholder="Minimal 6 karakter"
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setPassModal(false)}
                 >
                   Batal
                 </button>
