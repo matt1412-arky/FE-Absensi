@@ -723,6 +723,8 @@ function GradesPage() {
   const [selClass, setSelClass] = useState("");
   const [students, setStudents] = useState([]);
   const [grades, setGrades] = useState([]);
+  const [deleted, setDeleted] = useState([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
@@ -742,6 +744,7 @@ function GradesPage() {
       gradesAPI
         .list({ class_id: selClass, order_by: col, sort: dir })
         .then((r) => setGrades(r.data || []));
+      gradesAPI.listDeleted(selClass).then((r) => setDeleted(r.data || []));
     }
   };
   useEffect(() => {
@@ -840,11 +843,70 @@ function GradesPage() {
             <div className="page-title">📝 Input Nilai</div>
             <div className="page-subtitle">Rekam nilai siswa</div>
           </div>
-          <button className="btn btn-primary" onClick={openAdd}>
-            + Tambah Nilai
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            {deleted.length > 0 && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setShowDeleted(!showDeleted)}
+              >
+                {showDeleted ? "✅ Aktif" : `🗑 Terhapus (${deleted.length})`}
+              </button>
+            )}
+            <button className="btn btn-primary" onClick={openAdd}>
+              + Tambah Nilai
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Tabel nilai terhapus */}
+      {showDeleted && deleted.length > 0 && (
+        <div
+          className="card"
+          style={{ marginBottom: 16, border: "2px solid var(--red)" }}
+        >
+          <div className="card-header">
+            <span className="card-title" style={{ color: "var(--red)" }}>
+              🗑 Nilai Terhapus
+            </span>
+          </div>
+          <div className="card-body table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Mata Pelajaran</th>
+                  <th>Tipe</th>
+                  <th>Nilai</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deleted.map((g) => (
+                  <tr key={g.id} style={{ opacity: 0.7 }}>
+                    <td style={{ textDecoration: "line-through" }}>{g.date}</td>
+                    <td style={{ textDecoration: "line-through" }}>
+                      {g.subject}
+                    </td>
+                    <td>{g.type}</td>
+                    <td>{g.score}</td>
+                    <td>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: "var(--green)" }}
+                        onClick={() => gradesAPI.restore(g.id).then(load)}
+                      >
+                        ♻️ Pulihkan
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <div className="card-header">
           <span className="card-title">Daftar Nilai</span>

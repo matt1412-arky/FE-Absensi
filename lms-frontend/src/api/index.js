@@ -62,6 +62,7 @@ export const attendanceAPI = {
 
 export const gradesAPI = {
   list: (params) => api.get('/grades', { params }),
+  listDeleted: (classId) => api.get('/grades/deleted', { params: classId ? { class_id: classId } : {} }),
   create: (data) => api.post('/grades', data),
   update: (id, data) => api.put(`/grades/${id}`, data),
   delete: (id) => api.delete(`/grades/${id}`),
