@@ -189,6 +189,7 @@ function Overview() {
                     }}
                   >
                     {s.time}
+                    {s.end_time ? ` – ${s.end_time}` : ""}
                   </div>
                   <div>
                     <div style={{ fontWeight: 600 }}>{s.subject}</div>
