@@ -1127,9 +1127,11 @@ function GradesPage() {
                       }
                     >
                       <option value="tugas">Tugas</option>
+                      <option value="quiz">Quiz</option>
                       <option value="ulangan">Ulangan</option>
                       <option value="uts">UTS</option>
                       <option value="uas">UAS</option>
+                      <option value="aas">AAS</option>
                     </select>
                   </div>
                   <div className="form-group">
