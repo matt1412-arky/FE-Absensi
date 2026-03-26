@@ -857,16 +857,27 @@ function GradesPage() {
 
   const typeLabel = {
     tugas: "Tugas",
+    quiz: "Quiz",
     ulangan: "Ulangan",
     uts: "UTS",
     uas: "UAS",
+    aas: "AAS",
   };
-  const typeBadge = { tugas: "blue", ulangan: "navy", uts: "gold", uas: "red" };
+  const typeBadge = {
+    tugas: "blue",
+    quiz: "green",
+    ulangan: "navy",
+    uts: "gold",
+    uas: "red",
+    aas: "purple",
+  };
   const typeBadgeStyle = {
     navy: { background: "var(--navy)", color: "var(--gold)" },
     blue: { background: "#dbeafe", color: "#1d4ed8" },
     gold: { background: "var(--gold-pale)", color: "#92400e" },
     red: { background: "#fee2e2", color: "#dc2626" },
+    green: { background: "#d1fae5", color: "#047857" },
+    purple: { background: "#ede9fe", color: "#5b21b6" },
   };
 
   return (
