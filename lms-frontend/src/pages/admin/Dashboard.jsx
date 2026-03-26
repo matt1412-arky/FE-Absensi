@@ -990,7 +990,12 @@ function GradesPage() {
                   >
                     Tanggal <SortIcon col="date" />
                   </th>
-                  <th>Siswa</th>
+                  <th
+                    onClick={() => handleSort("name")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Siswa <SortIcon col="name" />
+                  </th>
                   <th
                     onClick={() => handleSort("subject")}
                     style={{ cursor: "pointer" }}
