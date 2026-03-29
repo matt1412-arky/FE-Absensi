@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import { useAuth } from "../../context/AuthContext";
-import { usersAPI, classesAPI } from "../../api";
+import { usersAPI, classesAPI, studentsAPI } from "../../api";
 
 const NAV = [
   { type: "label", label: "Manajemen" },
@@ -125,11 +125,13 @@ function UsersPage() {
 
   const [sortCol, setSortCol] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
+  const [allStudents, setAllStudents] = useState([]);
 
   const load = (col = sortCol, dir = sortDir) => {
     usersAPI.list(col, dir).then((r) => setUsers(r.data || []));
     usersAPI.listDeleted().then((r) => setDeleted(r.data || []));
     classesAPI.list().then((r) => setClasses(r.data || []));
+    studentsAPI.list().then((r) => setAllStudents(r.data || []));
   };
   useEffect(() => {
     load();
@@ -162,6 +164,8 @@ function UsersPage() {
       name: "",
       role: "student",
       class_id: "",
+      student_id: "",
+      link_mode: "new",
     });
     setModal(true);
   };
@@ -189,8 +193,15 @@ function UsersPage() {
     const payload = {
       ...form,
       class_id: form.class_id ? parseInt(form.class_id) : null,
+      student_id:
+        form.role === "student" &&
+        form.link_mode === "existing" &&
+        form.student_id
+          ? parseInt(form.student_id)
+          : null,
     };
     if (!payload.password) delete payload.password;
+    delete payload.link_mode;
     if (editing) await usersAPI.update(editing.id, payload);
     else await usersAPI.create(payload);
     setModal(false);
@@ -420,7 +431,12 @@ function UsersPage() {
                       className="form-input form-select"
                       value={form.role}
                       onChange={(e) =>
-                        setForm({ ...form, role: e.target.value })
+                        setForm({
+                          ...form,
+                          role: e.target.value,
+                          link_mode: "new",
+                          student_id: "",
+                        })
                       }
                     >
                       <option value="superadmin">Super Admin</option>
@@ -428,7 +444,80 @@ function UsersPage() {
                       <option value="student">Siswa</option>
                     </select>
                   </div>
-                  {form.role === "student" && (
+                  {form.role === "student" && !editing && (
+                    <div className="form-group">
+                      <label className="form-label">Mode Data Siswa</label>
+                      <select
+                        className="form-input form-select"
+                        value={form.link_mode}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            link_mode: e.target.value,
+                            student_id: "",
+                            class_id: "",
+                          })
+                        }
+                      >
+                        <option value="new">➕ Buat data siswa baru</option>
+                        <option value="existing">
+                          🔗 Hubungkan ke siswa yang sudah ada
+                        </option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+                {form.role === "student" &&
+                  !editing &&
+                  form.link_mode === "existing" && (
+                    <div className="form-group">
+                      <label className="form-label">
+                        Pilih Siswa yang Sudah Ada
+                      </label>
+                      <select
+                        className="form-input form-select"
+                        value={form.student_id}
+                        onChange={(e) => {
+                          const sid = e.target.value;
+                          const found = allStudents.find(
+                            (s) => String(s.id) === sid,
+                          );
+                          setForm({
+                            ...form,
+                            student_id: sid,
+                            name: found ? found.name : form.name,
+                            class_id: found
+                              ? String(found.class_id)
+                              : form.class_id,
+                          });
+                        }}
+                        required
+                      >
+                        <option value="">-- Pilih Siswa --</option>
+                        {allStudents
+                          .filter((s) => !s.user_id || s.user_id === 0)
+                          .map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name} ({s.class?.name || "Kelas " + s.class_id}
+                              )
+                            </option>
+                          ))}
+                      </select>
+                      <small
+                        style={{
+                          color: "var(--gray-400)",
+                          fontSize: 12,
+                          marginTop: 4,
+                          display: "block",
+                        }}
+                      >
+                        Hanya menampilkan siswa yang belum punya akun
+                      </small>
+                    </div>
+                  )}
+                {form.role === "student" &&
+                  !editing &&
+                  form.link_mode === "new" && (
                     <div className="form-group">
                       <label className="form-label">Kelas</label>
                       <select
@@ -447,7 +536,6 @@ function UsersPage() {
                       </select>
                     </div>
                   )}
-                </div>
               </div>
               <div className="modal-footer">
                 <button
