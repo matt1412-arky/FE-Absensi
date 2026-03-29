@@ -133,7 +133,6 @@ function Overview() {
         </div>
       </div>
 
-      {/* Stat cards */}
       <div
         className="stat-grid"
         style={{ gridTemplateColumns: "repeat(4,1fr)" }}
@@ -176,7 +175,6 @@ function Overview() {
           marginBottom: 20,
         }}
       >
-        {/* Jadwal hari ini */}
         <div className="card">
           <div className="card-header">
             <span className="card-title">📅 Jadwal Hari Ini</span>
@@ -224,7 +222,6 @@ function Overview() {
           </div>
         </div>
 
-        {/* Pilih kelas untuk grafik */}
         <div className="card">
           <div className="card-header">
             <span className="card-title">📊 Grafik Nilai</span>
@@ -262,7 +259,6 @@ function Overview() {
         </div>
       </div>
 
-      {/* Chart full width */}
       {chartData && (
         <div className="card">
           <div className="card-header">
@@ -778,15 +774,21 @@ function GradesPage() {
   const [sortCol, setSortCol] = useState("date");
   const [sortDir, setSortDir] = useState("desc");
 
+  // Sort by name is done client-side since name is in students table
+  const BE_SORT_COLS = ["date", "subject", "type", "score"];
+
   const load = (col = sortCol, dir = sortDir) => {
     if (selClass) {
       studentsAPI.list(selClass).then((r) => setStudents(r.data || []));
+      const beCol = BE_SORT_COLS.includes(col) ? col : "date";
+      const beDir = BE_SORT_COLS.includes(col) ? dir : "desc";
       gradesAPI
-        .list({ class_id: selClass, order_by: col, sort: dir })
+        .list({ class_id: selClass, order_by: beCol, sort: beDir })
         .then((r) => setGrades(r.data || []));
       gradesAPI.listDeleted(selClass).then((r) => setDeleted(r.data || []));
     }
   };
+
   useEffect(() => {
     classesAPI.list().then((r) => {
       setClasses(r.data);
@@ -803,6 +805,18 @@ function GradesPage() {
     setSortDir(newDir);
     load(col, newDir);
   };
+
+  // Client-side sort for name column
+  const sortedGrades =
+    sortCol === "name"
+      ? [...grades].sort((a, b) => {
+          const nameA = students.find((s) => s.id === a.student_id)?.name || "";
+          const nameB = students.find((s) => s.id === b.student_id)?.name || "";
+          return sortDir === "asc"
+            ? nameA.localeCompare(nameB)
+            : nameB.localeCompare(nameA);
+        })
+      : grades;
 
   const SortIcon = ({ col }) => (
     <span
@@ -863,14 +877,6 @@ function GradesPage() {
     uas: "UAS",
     aas: "AAS",
   };
-  const typeBadge = {
-    tugas: "blue",
-    quiz: "green",
-    ulangan: "navy",
-    uts: "gold",
-    uas: "red",
-    aas: "purple",
-  };
   const typeBadgeStyle = {
     navy: { background: "var(--navy)", color: "var(--gold)" },
     blue: { background: "#dbeafe", color: "#1d4ed8" },
@@ -878,6 +884,14 @@ function GradesPage() {
     red: { background: "#fee2e2", color: "#dc2626" },
     green: { background: "#d1fae5", color: "#047857" },
     purple: { background: "#ede9fe", color: "#5b21b6" },
+  };
+  const typeBadge = {
+    tugas: "blue",
+    quiz: "green",
+    ulangan: "navy",
+    uts: "gold",
+    uas: "red",
+    aas: "purple",
   };
 
   return (
@@ -910,7 +924,6 @@ function GradesPage() {
         </div>
       </div>
 
-      {/* Tabel nilai terhapus */}
       {showDeleted && deleted.length > 0 && (
         <div
           className="card"
@@ -975,7 +988,7 @@ function GradesPage() {
           </select>
         </div>
         <div className="card-body table-wrap">
-          {grades.length === 0 ? (
+          {sortedGrades.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📝</div>
               <p>Belum ada nilai</p>
@@ -1019,7 +1032,7 @@ function GradesPage() {
                 </tr>
               </thead>
               <tbody>
-                {grades.map((g) => {
+                {sortedGrades.map((g) => {
                   const s = students.find((s) => s.id === g.student_id);
                   const tc = typeBadge[g.type] || "blue";
                   const ts = typeBadgeStyle[tc];
@@ -1328,19 +1341,18 @@ function StudentsPage() {
       alert("Pilih kelas terlebih dahulu");
       return;
     }
-    if (editing) {
+    if (editing)
       await studentsAPI.update(editing.id, {
         name: form.name,
         class_id: classId,
         points: parseInt(form.points) || 0,
       });
-    } else {
+    else
       await studentsAPI.create({
         name: form.name,
         class_id: classId,
         points: parseInt(form.points) || 0,
       });
-    }
     setModal(false);
     load();
   };
@@ -1350,7 +1362,6 @@ function StudentsPage() {
     await studentsAPI.delete(id);
     load();
   };
-
   const handleRestore = async (id) => {
     await studentsAPI.restore(id);
     load();
@@ -1386,7 +1397,6 @@ function StudentsPage() {
         </div>
       </div>
 
-      {/* Tabel data terhapus */}
       {showDeleted && (
         <div
           className="card"
@@ -1633,7 +1643,6 @@ function StudentsPage() {
         </div>
       )}
 
-      {/* Modal Kelola Poin */}
       {pointModal && pointTarget && (
         <div
           className="modal-overlay"
@@ -1650,7 +1659,6 @@ function StudentsPage() {
               </button>
             </div>
             <div className="modal-body">
-              {/* Current Points */}
               <div
                 style={{
                   textAlign: "center",
@@ -1673,8 +1681,6 @@ function StudentsPage() {
                   ⭐ {pointTarget.points}
                 </div>
               </div>
-
-              {/* Form tambah/kurang poin */}
               <form onSubmit={submitPoint}>
                 {pointMsg && (
                   <div
@@ -1741,10 +1747,11 @@ function StudentsPage() {
                   </button>
                 </div>
               </form>
-
-              {/* History */}
               <div
-                style={{ borderTop: "1px solid var(--border)", paddingTop: 12 }}
+                style={{
+                  borderTop: "1px solid var(--gray-100)",
+                  paddingTop: 12,
+                }}
               >
                 <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
                   📋 Riwayat Perubahan Poin
@@ -1770,7 +1777,7 @@ function StudentsPage() {
                           justifyContent: "space-between",
                           alignItems: "center",
                           padding: "8px 0",
-                          borderBottom: "1px solid var(--border)",
+                          borderBottom: "1px solid var(--gray-100)",
                         }}
                       >
                         <div>
