@@ -536,6 +536,54 @@ function UsersPage() {
                       </select>
                     </div>
                   )}
+                {form.role === "student" && editing && (
+                  <div className="form-group">
+                    <label className="form-label">Kelas</label>
+                    <select
+                      className="form-input form-select"
+                      value={form.class_id}
+                      onChange={(e) =>
+                        setForm({ ...form, class_id: e.target.value })
+                      }
+                    >
+                      <option value="">-- Pilih Kelas --</option>
+                      {classes.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {form.role === "admin" && (
+                  <div className="form-group">
+                    <label className="form-label">Kelas yang Diampu</label>
+                    <select
+                      className="form-input form-select"
+                      value={form.class_id}
+                      onChange={(e) =>
+                        setForm({ ...form, class_id: e.target.value })
+                      }
+                    >
+                      <option value="">-- Pilih Kelas (Opsional) --</option>
+                      {classes.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <small
+                      style={{
+                        color: "var(--gray-400)",
+                        fontSize: 12,
+                        marginTop: 4,
+                        display: "block",
+                      }}
+                    >
+                      Pilih kelas yang akan diampu oleh guru/admin ini
+                    </small>
+                  </div>
+                )}
               </div>
               <div className="modal-footer">
                 <button
