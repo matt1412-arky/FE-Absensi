@@ -470,50 +470,82 @@ function UsersPage() {
                 {form.role === "student" &&
                   !editing &&
                   form.link_mode === "existing" && (
-                    <div className="form-group">
-                      <label className="form-label">
-                        Pilih Siswa yang Sudah Ada
-                      </label>
-                      <select
-                        className="form-input form-select"
-                        value={form.student_id}
-                        onChange={(e) => {
-                          const sid = e.target.value;
-                          const found = allStudents.find(
-                            (s) => String(s.id) === sid,
-                          );
-                          setForm({
-                            ...form,
-                            student_id: sid,
-                            name: found ? found.name : form.name,
-                            class_id: found
-                              ? String(found.class_id)
-                              : form.class_id,
-                          });
-                        }}
-                        required
-                      >
-                        <option value="">-- Pilih Siswa --</option>
-                        {allStudents
-                          .filter((s) => !s.user_id || s.user_id === 0)
-                          .map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name} ({s.class?.name || "Kelas " + s.class_id}
-                              )
-                            </option>
-                          ))}
-                      </select>
-                      <small
-                        style={{
-                          color: "var(--gray-400)",
-                          fontSize: 12,
-                          marginTop: 4,
-                          display: "block",
-                        }}
-                      >
-                        Hanya menampilkan siswa yang belum punya akun
-                      </small>
-                    </div>
+                    <>
+                      <div className="form-group">
+                        <label className="form-label">
+                          Pilih Siswa yang Sudah Ada
+                        </label>
+                        <select
+                          className="form-input form-select"
+                          value={form.student_id}
+                          onChange={(e) => {
+                            const sid = e.target.value;
+                            const found = allStudents.find(
+                              (s) => String(s.id) === sid,
+                            );
+                            setForm({
+                              ...form,
+                              student_id: sid,
+                              name: found ? found.name : form.name,
+                              class_id: found
+                                ? String(found.class_id)
+                                : form.class_id,
+                            });
+                          }}
+                          required
+                        >
+                          <option value="">-- Pilih Siswa --</option>
+                          {allStudents
+                            .filter((s) => !s.user_id || s.user_id === 0)
+                            .map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name} (
+                                {s.class?.name || "Kelas " + s.class_id})
+                              </option>
+                            ))}
+                        </select>
+                        <small
+                          style={{
+                            color: "var(--gray-400)",
+                            fontSize: 12,
+                            marginTop: 4,
+                            display: "block",
+                          }}
+                        >
+                          Hanya menampilkan siswa yang belum punya akun
+                        </small>
+                      </div>
+                      {form.student_id && (
+                        <div className="form-group">
+                          <label className="form-label">Kelas</label>
+                          <select
+                            className="form-input form-select"
+                            value={form.class_id}
+                            onChange={(e) =>
+                              setForm({ ...form, class_id: e.target.value })
+                            }
+                          >
+                            <option value="">-- Pilih Kelas --</option>
+                            {classes.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </select>
+                          <small
+                            style={{
+                              color: "var(--gray-400)",
+                              fontSize: 12,
+                              marginTop: 4,
+                              display: "block",
+                            }}
+                          >
+                            Kelas otomatis terisi dari data siswa. Ubah jika
+                            ingin pindah kelas.
+                          </small>
+                        </div>
+                      )}
+                    </>
                   )}
                 {form.role === "student" &&
                   !editing &&
